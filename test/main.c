@@ -25,6 +25,24 @@ int	main() {
 	CHECK("%#010x\n", 8590);
 	CHECK("%#02x\n", 8504);
 	CHECK("%#10x\n", 0);
+	printf("\n\n\n");
+	CHECK("%5o\n", 7584);
+	CHECK("%10o\n", 49483);
+	CHECK("%#10o\n", 8504);
+	CHECK("%#o\n", 85994);
+	CHECK("%-10o -\n", 94903);
+	CHECK("%-#12o -\n", 95940);
+	CHECK("%#010o\n", 8590);
+	CHECK("%#02o\n", 8504);
+	CHECK("%#10o\n", 0);
+
+	CHECK("%10.4hhu\n", 4000);
+	CHECK("%-10.4hhu\n", 4000);
+	CHECK("%10hhu\n", 4000);
+
+	CHECK("%10.7x\n", 8504);
+	CHECK("%-10.7x -\n", 8504);
+	CHECK("%#10.7X\n", 8504);
 	//printf("%hhd - %hd - %d - %ld - %lld\n",  81029, 90384949399, 2039884, 589938L, 7483038LL);
 	//ft_printf("%d - %ld adfdsa\n", 85040, 85949);
 	return (0);
