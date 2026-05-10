@@ -42,7 +42,9 @@ int	main() {
 
 	CHECK("%10.7x\n", 8504);
 	CHECK("%-10.7x -\n", 8504);
-	CHECK("%#10.7X\n", 8504);
+	CHECK("%#10.6x\n", 8504);
+	CHECK("%-#10.6x -\n", 8504);
+
 	//printf("%hhd - %hd - %d - %ld - %lld\n",  81029, 90384949399, 2039884, 589938L, 7483038LL);
 	//ft_printf("%d - %ld adfdsa\n", 85040, 85949);
 	return (0);
