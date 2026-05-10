@@ -22,7 +22,7 @@ int     				ft_putnumber_ull(unsigned long long n, unsigned int base);
 int     				ft_putnumber(long long n, int base);
 void    				ft_putnbr_u(unsigned int n);
 void    				ft_putnbr_sc(signed char n);
-void    				ft_putnbr_ll(long long n);
+int     				ft_putnbr_ll(signed long long n, int base);
 int					ft_numlen_ll(long long n);
 int					ft_isalnum(int c);
 int					ft_isalpha(int c);
