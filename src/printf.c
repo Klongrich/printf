@@ -200,6 +200,20 @@ int	parse_arg_parameters(char *str, int i, t_args *args) {
 	return (j);
 }
 
+int	ft_putnbr_ull(unsigned long long n, int base) {
+	int	count;
+	char	*symbols;
+
+	count = 0;
+	symbols = "0123456789abcdef";
+	if (n == 0)
+		return (ft_putchar('0'));
+	if (n >= (unsigned long long)base)
+		count += ft_putnbr_ull(n / base, base);
+	count += ft_putchar(symbols[n % base]);
+	return (count);
+}
+
 int	print_formatted_string(char *str, t_args args) {
 	int count;
 
@@ -207,6 +221,19 @@ int	print_formatted_string(char *str, t_args args) {
 	count += ft_count_putstr(str);
 	return (count);
 }
+
+/*
+int	print_unsigned_number(int base, t_args args) {
+	if (args.hh)
+		return(ft_putnbr_ull((unsigned char)data, base));
+	else if (args.h) 
+		return (ft_putnbr_ull((unsigned short)data, base));
+	else if (args.ll || args.l)
+		return(ft_putnbr_ull((unsigned long long)data, base));
+	else
+		return(ft_putnbr_ull((unsigned int)data, base));
+}
+*/
 
 int	print_formatted_signed_decimal(long long data, t_args args) {
 	int count;
@@ -223,6 +250,51 @@ int	print_formatted_signed_decimal(long long data, t_args args) {
 	return (count);
 }
 
+int	print_formatted_unsigned_decimal(unsigned long long data, t_args args) {
+	int count;
+	
+	count = 0;
+	if (args.hh)
+		count += ft_putnbr_ull((unsigned char)data, 10);
+	else if (args.h) 
+		count += ft_putnbr_ull((unsigned short)data, 10);
+	else if (args.ll || args.l)
+		count += ft_putnbr_ull((unsigned long long)data, 10);
+	else
+		count += ft_putnbr_ull((unsigned int)data, 10);
+	return (count);	
+}
+
+int	print_formatted_hex(unsigned long long data, t_args args) {
+	int count;
+	
+	count = 0;
+	if (args.hh)
+		count += ft_putnbr_ull((unsigned char)data, 16);
+	else if (args.h) 
+		count += ft_putnbr_ull((unsigned short)data, 16);
+	else if (args.ll || args.l)
+		count += ft_putnbr_ull((unsigned long long)data, 16);
+	else
+		count += ft_putnbr_ull((unsigned int)data, 16);
+	return (count);	
+}
+
+int	print_formatted_octal(unsigned long long data, t_args args) {
+	int count;
+	
+	count = 0;
+	if (args.hh)
+		count += ft_putnbr_ull((unsigned char)data, 8);
+	else if (args.h) 
+		count += ft_putnbr_ull((unsigned short)data, 8);
+	else if (args.ll || args.l)
+		count += ft_putnbr_ull((unsigned long long)data, 8);
+	else
+		count += ft_putnbr_ull((unsigned int)data, 8);
+	return (count);	
+}
+
 int	print_formatted_data(va_list list, t_args args) {
 	int count;
 
@@ -230,12 +302,18 @@ int	print_formatted_data(va_list list, t_args args) {
 	if (args.string) {
 		count += print_formatted_string(va_arg(list, char *), args);
 	} else if (args.decimal) {
-		if (args.is_signed) {
+		if (args.is_signed) 
 			print_formatted_signed_decimal(va_arg(list, long long), args);	
-		} else if (args.is_unsigned) {
-
-		}
+		else
+			print_formatted_unsigned_decimal(va_arg(list, unsigned long long), args);	
+	} else if (args.hex) {
+		if (args.is_uppercase)
+			count += print_formatted_hex(va_arg(list, unsigned long long), args);
+		else
+			count += print_formatted_hex(va_arg(list, unsigned long long), args);
 	}
+	else if (args.octal)
+		count += print_formatted_octal(va_arg(list, unsigned long long), args);
 	return (count);
 }
 
@@ -270,7 +348,6 @@ int	ft_printf(char *str, ...) {
 				i += res;
 			}
 		}
-		//printf("i: %d\n", i);
 		i++;
 	}
 	return(count);
