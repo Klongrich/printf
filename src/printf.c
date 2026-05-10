@@ -124,7 +124,7 @@ void	get_data_format(char *str, int i, t_args *args) {
 		args->is_signed = 1;
 	} else if (str[i] == 'u') {
 		args->decimal = 1;
-		args->is_signed = 1;
+		args->is_signed = 0;
 	}
 }
 
@@ -248,14 +248,12 @@ int	print_formatted_signed_decimal(long long data, t_args args) {
 	return (count);
 }
 
-int	put_padding_unsigned_decimal(unsigned long long data, t_args args) {
+int	put_padding_unsigned_decimal(unsigned long long data, t_args args, int num_len) {
 	int count;
-	int num_len;
 	int i;
 
 	count = 0;
 	i = 0;
-	num_len = ft_numlen_ull(data);
 	while(i < args.padding - num_len) {
 		if (args.zero)
 			count += ft_putchar('0');
@@ -266,16 +264,59 @@ int	put_padding_unsigned_decimal(unsigned long long data, t_args args) {
 	return (count);
 }
 
+int	print_precision(int num_len, t_args args) {
+	int count;
+	int i;
+	
+	i = 0;
+	count = 0;
+	while (i < args.dot - num_len) {
+		count += ft_putchar('0');
+		i++;
+	}
+	return (count);
+}
+
+int             ft_numlen_ull_printf(unsigned long long n, t_args args) {
+	int i;
+	
+	i = 0;
+	if (args.hh)
+		n = (unsigned char)n;
+	else if (args.h)
+		n = (unsigned short)n;
+	else if (!args.l || !args.ll)
+		n = (unsigned int)n;
+	if (n < 0) {
+		i++;
+		n *= -1;
+	}
+	if (n == 0)
+		i++;
+	while (n) {
+		n /= 10;
+		i++;
+	}
+	return (i);
+}
 
 int	print_formatted_unsigned_decimal(unsigned long long data, t_args args) {
 	int count;
+	int num_len;
 	
 	count = 0;
+	num_len = ft_numlen_ull_printf(data, args);
+	if (args.dot && args.dot != -1 && args.dot <= num_len)
+		args.dot = 0;
+	 else
+		args.padding -= args.dot - num_len;
 	if (args.padding != 0 && !args.left)
-		count += put_padding_unsigned_decimal(data, args);
+		count += put_padding_unsigned_decimal(data, args, num_len);
+	if (args.dot)
+		count += print_precision(num_len, args);
 	count += print_unsigned_number(data, 10, args);
 	if (args.padding != 0 && args.left)
-		count += put_padding_unsigned_decimal(data, args);
+		count += put_padding_unsigned_decimal(data, args, num_len);
 	return (count);	
 }
 
@@ -337,15 +378,13 @@ int             ft_numlen_oct(unsigned long long n) {
          int i;
  
          i = 0;
-         if (n < 0)
-         {
+         if (n < 0) {
                  i++;
                  n *= -1;
          }
          if (n == 0)
                  i++;
-         while (n)
-         {
+         while (n) {
                  n /= 8;
                  i++;
          }
