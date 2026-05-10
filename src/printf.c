@@ -333,11 +333,56 @@ int	print_formatted_hex(unsigned long long data, t_args args) {
 	return (count);	
 }
 
+int             ft_numlen_oct(unsigned long long n) {
+         int i;
+ 
+         i = 0;
+         if (n < 0)
+         {
+                 i++;
+                 n *= -1;
+         }
+         if (n == 0)
+                 i++;
+         while (n)
+         {
+                 n /= 8;
+                 i++;
+         }
+         return (i);
+}
+
+int	put_padding_octal(unsigned long long data, t_args args) {
+	int count;
+	int i;
+	int num_len;
+
+	count = 0;
+	i = 0;
+	num_len = ft_numlen_oct(data);
+	if (args.pound && data != 0)
+		num_len++;
+	while (i < args.padding - num_len) {
+		if (args.zero)
+			count += ft_putchar('0');
+		else
+			count += ft_putchar(' ');
+		i++;
+	}
+	return (count);
+}
+
 int	print_formatted_octal(unsigned long long data, t_args args) {
 	int count;
 	
 	count = 0;
+	if (args.padding && !args.left)
+		count += put_padding_octal(data, args);
+	if (args.pound && data != 0)
+		count += ft_putchar('0');
 	count += print_unsigned_number(data, 8, args);
+	if (args.padding && args.left)
+		count += put_padding_octal(data, args);
 	return (count);	
 }
 
