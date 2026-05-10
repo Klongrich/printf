@@ -153,7 +153,7 @@ int	get_datatype_args(char *str, int j, t_args *args) {
 		args->is_signed = 1;
 	} else if (str[i] == 'u') {
 		args->decimal = 1;
-		args->is_signed = 1;
+		args->is_signed = 0;
 	} else if (str[i] == 'f')
 		args->is_float = 1;
 	else if (str[i] == 'h' && str[i + 1] == 'h') {
@@ -222,8 +222,7 @@ int	print_formatted_string(char *str, t_args args) {
 	return (count);
 }
 
-/*
-int	print_unsigned_number(int base, t_args args) {
+int	print_unsigned_number(unsigned long long data, int base, t_args args) {
 	if (args.hh)
 		return(ft_putnbr_ull((unsigned char)data, base));
 	else if (args.h) 
@@ -233,7 +232,6 @@ int	print_unsigned_number(int base, t_args args) {
 	else
 		return(ft_putnbr_ull((unsigned int)data, base));
 }
-*/
 
 int	print_formatted_signed_decimal(long long data, t_args args) {
 	int count;
@@ -250,33 +248,88 @@ int	print_formatted_signed_decimal(long long data, t_args args) {
 	return (count);
 }
 
+int	put_padding_unsigned_decimal(unsigned long long data, t_args args) {
+	int count;
+	int num_len;
+	int i;
+
+	count = 0;
+	i = 0;
+	num_len = ft_numlen_ull(data);
+	while(i < args.padding - num_len) {
+		if (args.zero)
+			count += ft_putchar('0');
+		else
+			count += ft_putchar(' ');
+		i++;
+	}
+	return (count);
+}
+
+
 int	print_formatted_unsigned_decimal(unsigned long long data, t_args args) {
 	int count;
 	
 	count = 0;
-	if (args.hh)
-		count += ft_putnbr_ull((unsigned char)data, 10);
-	else if (args.h) 
-		count += ft_putnbr_ull((unsigned short)data, 10);
-	else if (args.ll || args.l)
-		count += ft_putnbr_ull((unsigned long long)data, 10);
-	else
-		count += ft_putnbr_ull((unsigned int)data, 10);
+	if (args.padding != 0 && !args.left)
+		count += put_padding_unsigned_decimal(data, args);
+	count += print_unsigned_number(data, 10, args);
+	if (args.padding != 0 && args.left)
+		count += put_padding_unsigned_decimal(data, args);
 	return (count);	
 }
+
+int             ft_numlen_hex(unsigned long long n) {
+         int i;
+ 
+         i = 0;
+         if (n < 0) {
+                 i++;
+                 n *= -1;
+         }
+         if (n == 0)
+                 i++;
+         while (n){
+                 n /= 16;
+                 i++;
+         }
+         return (i);
+}
+
+int	put_padding_hex(unsigned long long data, t_args args) {
+	int count;
+	int num_len;
+	int i;
+
+	count = 0;
+	i = 0;
+	num_len = ft_numlen_hex(data);
+	if (args.pound && data != 0)
+		num_len += 2;
+	while (i < args.padding - num_len) {
+		if (args.zero)
+			count += ft_putchar('0');
+		else
+			count += ft_putchar(' ');
+		i++;
+	}
+	return (count);
+}
+
 
 int	print_formatted_hex(unsigned long long data, t_args args) {
 	int count;
 	
 	count = 0;
-	if (args.hh)
-		count += ft_putnbr_ull((unsigned char)data, 16);
-	else if (args.h) 
-		count += ft_putnbr_ull((unsigned short)data, 16);
-	else if (args.ll || args.l)
-		count += ft_putnbr_ull((unsigned long long)data, 16);
-	else
-		count += ft_putnbr_ull((unsigned int)data, 16);
+	if (args.zero && args.pound && data != 0)
+		count += ft_count_putstr("0x");
+	if (args.padding && !args.left)
+		count += put_padding_hex(data, args);
+	if (args.pound && data != 0 && !args.zero)
+		count += ft_count_putstr("0x");
+	count += print_unsigned_number(data, 16, args);
+	if (args.padding && args.left)
+		count += put_padding_hex(data, args);
 	return (count);	
 }
 
@@ -284,14 +337,7 @@ int	print_formatted_octal(unsigned long long data, t_args args) {
 	int count;
 	
 	count = 0;
-	if (args.hh)
-		count += ft_putnbr_ull((unsigned char)data, 8);
-	else if (args.h) 
-		count += ft_putnbr_ull((unsigned short)data, 8);
-	else if (args.ll || args.l)
-		count += ft_putnbr_ull((unsigned long long)data, 8);
-	else
-		count += ft_putnbr_ull((unsigned int)data, 8);
+	count += print_unsigned_number(data, 8, args);
 	return (count);	
 }
 
@@ -303,9 +349,9 @@ int	print_formatted_data(va_list list, t_args args) {
 		count += print_formatted_string(va_arg(list, char *), args);
 	} else if (args.decimal) {
 		if (args.is_signed) 
-			print_formatted_signed_decimal(va_arg(list, long long), args);	
+			count += print_formatted_signed_decimal(va_arg(list, long long), args);	
 		else
-			print_formatted_unsigned_decimal(va_arg(list, unsigned long long), args);	
+			count += print_formatted_unsigned_decimal(va_arg(list, unsigned long long), args);	
 	} else if (args.hex) {
 		if (args.is_uppercase)
 			count += print_formatted_hex(va_arg(list, unsigned long long), args);
