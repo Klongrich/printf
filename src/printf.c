@@ -110,11 +110,83 @@ int	check_for_datatype(char c) {
 	return (0);
 }
 
+
+void	get_data_format(char *str, int i, t_args *args) {
+	if (str[i] == 'o')
+		args->octal = 1;
+	else if (str[i] == 'x')
+		args->hex = 1;
+	else if (str[i] == 'X') {
+		args->hex = 1;
+		args->is_uppercase = 1;
+	} else if (str[i] == 'd' || str[i] == 'i') {
+		args->decimal = 1;
+		args->is_signed = 1;
+	} else if (str[i] == 'u') {
+		args->decimal = 1;
+		args->is_signed = 1;
+	}
+}
+
+int	get_datatype_args(char *str, int j, t_args *args) {
+	int i;
+
+	i = 0;
+	if (j == -1)
+		return (0);
+	i = j + 1;
+	printf("str[i]: %c\n", str[i - 1]);
+	if (str[i] == 's')
+		args->string = 1;
+	else if (str[i] == 'c')
+		args->character = 1;
+	else if (str[i] == 'p')
+		args->pointer = 1;
+	else if (str[i] == 'o')
+		args->octal = 1;
+	else if (str[i] == 'x')
+		args->hex = 1;
+	else if (str[i] == 'X') {
+		args->hex = 1;
+		args->is_uppercase = 1;
+	} else if (str[i] == 'd' || str[i] == 'i') {
+		args->decimal = 1;
+		args->is_signed = 1;
+	} else if (str[i] == 'u') {
+		args->decimal = 1;
+		args->is_signed = 1;
+	} else if (str[i] == 'f')
+		args->is_float = 1;
+	else if (str[i] == 'h' && str[i + 1] == 'h') {
+		args->hh = 1;
+		get_data_format(str, i + 2, args);
+		return (2);
+	}
+	else if (str[i] == 'h') {
+		args->h = 1;
+		get_data_format(str, i + 1, args);
+	}
+	else if (str[i] == 'l' && str[i] == 'l') {
+		args->ll = 1;
+		get_data_format(str, i + 2, args);
+		return (2);
+	}
+	else if (str[i] == 'l') {
+		args->l = 1;
+		get_data_format(str, i + 1, args);
+	} else {
+		return (0);
+	}
+	return (1);
+}
+
 int	parse_arg_parameters(char *str, int i, t_args *args) {
 	char 	buffer[4095];
 	int	j;
+	int	start;
 
 	j = 0;
+	start = i - 1;
 	buffer[0] = '\0';
 	while(!check_for_datatype(str[i])) {
 		if (!str[i])
@@ -123,6 +195,7 @@ int	parse_arg_parameters(char *str, int i, t_args *args) {
 	}
 	buffer[j] = '\0';
 	parse_args(buffer, args);
+	j += get_datatype_args(str, j + start, args);
 	return (j);
 }
 
@@ -156,7 +229,6 @@ int	ft_printf(char *str, ...) {
 		}
 		print_args(args);
 		i++;
-		//i += check_i(str, i) + 1;
 	}
 	return(count);
 }
