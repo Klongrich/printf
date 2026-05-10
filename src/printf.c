@@ -135,7 +135,6 @@ int	get_datatype_args(char *str, int j, t_args *args) {
 	if (j == -1)
 		return (0);
 	i = j + 1;
-	printf("str[i]: %c\n", str[i - 1]);
 	if (str[i] == 's')
 		args->string = 1;
 	else if (str[i] == 'c')
@@ -160,20 +159,22 @@ int	get_datatype_args(char *str, int j, t_args *args) {
 	else if (str[i] == 'h' && str[i + 1] == 'h') {
 		args->hh = 1;
 		get_data_format(str, i + 2, args);
-		return (2);
+		return (3);
 	}
 	else if (str[i] == 'h') {
 		args->h = 1;
 		get_data_format(str, i + 1, args);
+		return (2);
 	}
 	else if (str[i] == 'l' && str[i] == 'l') {
 		args->ll = 1;
 		get_data_format(str, i + 2, args);
-		return (2);
+		return (3);
 	}
 	else if (str[i] == 'l') {
 		args->l = 1;
 		get_data_format(str, i + 1, args);
+		return (2);
 	} else {
 		return (0);
 	}
@@ -197,6 +198,45 @@ int	parse_arg_parameters(char *str, int i, t_args *args) {
 	parse_args(buffer, args);
 	j += get_datatype_args(str, j + start, args);
 	return (j);
+}
+
+int	print_formatted_string(char *str, t_args args) {
+	int count;
+
+	count = 0;
+	count += ft_count_putstr(str);
+	return (count);
+}
+
+int	print_formatted_signed_decimal(long long data, t_args args) {
+	int count;
+	
+	count = 0;
+	if (args.hh)
+		count += ft_putnbr_ll((char)data, 10);
+	else if (args.h) 
+		count += ft_putnbr_ll((short)data, 10);
+	else if (args.ll || args.l)
+		count += ft_putnbr_ll((long long)data, 10);
+	else
+		count += ft_putnbr_ll((int)data, 10);
+	return (count);
+}
+
+int	print_formatted_data(va_list list, t_args args) {
+	int count;
+
+	count = 0;
+	if (args.string) {
+		count += print_formatted_string(va_arg(list, char *), args);
+	} else if (args.decimal) {
+		if (args.is_signed) {
+			print_formatted_signed_decimal(va_arg(list, long long), args);	
+		} else if (args.is_unsigned) {
+
+		}
+	}
+	return (count);
 }
 
 int	ft_printf(char *str, ...) {
@@ -224,10 +264,13 @@ int	ft_printf(char *str, ...) {
 			if (res == -1) {
 				count += 1;
 				break;
-			} else
-				i += res + 1;
+			}  else {
+				if (res != 0) 
+					count += print_formatted_data(list, args);
+				i += res;
+			}
 		}
-		print_args(args);
+		//printf("i: %d\n", i);
 		i++;
 	}
 	return(count);
