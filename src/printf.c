@@ -264,12 +264,15 @@ int	put_padding_unsigned_decimal(unsigned long long data, t_args args, int num_l
 	return (count);
 }
 
+//check for 0, pass number
 int	print_precision(int num_len, t_args args) {
 	int count;
 	int i;
 	
 	i = 0;
 	count = 0;
+	if (args.pound && args.hex)
+		num_len -= 2;
 	while (i < args.dot - num_len) {
 		count += ft_putchar('0');
 		i++;
@@ -300,8 +303,9 @@ void	check_precision(int num_len, t_args *args) {
 	if (args->dot && args->dot != -1) {
 		if(args->dot <= num_len)
 			args->dot = 0;
-	 	else
+	 	else {
 			args->padding -= args->dot - num_len;
+		}
 	}
 }
 
@@ -344,10 +348,10 @@ int	print_formatted_hex(unsigned long long data, t_args args) {
 	int num_len;
 	
 	count = 0;
-	num_len =  ft_numlen_ull_printf(data, args, 16);
+	num_len = ft_numlen_ull_printf(data, args, 16);
+	check_precision(num_len, &args);
 	if (args.pound && data != 0)
 		num_len += 2;
-	check_precision(num_len, &args);
 	if (args.zero && args.pound && data != 0)
 		count += ft_count_putstr("0x");
 	if (args.padding && !args.left)
