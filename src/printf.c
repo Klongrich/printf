@@ -50,7 +50,9 @@ t_args init() {
     args.is_float = 0;
     args.is_signed = 0;
     args.is_unsigned = 0;
-
+    args.not_zero = 0;
+    args.positive = 0;
+    args.negative = 0;
     return (args);
 }
 
@@ -214,14 +216,6 @@ int	ft_putnbr_ull(unsigned long long n, int base) {
 	return (count);
 }
 
-int	print_formatted_string(char *str, t_args args) {
-	int count;
-
-	count = 0;
-	count += ft_count_putstr(str);
-	return (count);
-}
-
 int	print_unsigned_number(unsigned long long data, int base, t_args args) {
 	if (args.hh)
 		return(ft_putnbr_ull((unsigned char)data, base));
@@ -233,7 +227,7 @@ int	print_unsigned_number(unsigned long long data, int base, t_args args) {
 		return(ft_putnbr_ull((unsigned int)data, base));
 }
 
-int	print_formatted_signed_decimal(long long data, t_args args) {
+int	print_signed_number(long long data, t_args args) {
 	int count;
 	
 	count = 0;
@@ -248,7 +242,7 @@ int	print_formatted_signed_decimal(long long data, t_args args) {
 	return (count);
 }
 
-int	put_padding(unsigned long long data, t_args args, int num_len) {
+int	put_padding(t_args args, int num_len) {
 	int count;
 	int i;
 
@@ -265,22 +259,55 @@ int	put_padding(unsigned long long data, t_args args, int num_len) {
 }
 
 //check for 0, pass number for #hex && #octal
+//check if value is >= 0 for is_signed
 int	print_precision(int num_len, t_args args) {
 	int count;
 	int i;
 	
 	i = 0;
 	count = 0;
-	if (args.pound && args.hex)
+	if (args.pound && args.hex && args.not_zero)
 		num_len -= 2;
 	if (args.pound && args.octal && args.dot <= num_len)
 		num_len -= 1;
+	if (args.is_signed) {
+		if (args.plus && args.positive)
+			num_len -= 1;
+		else if (args.negative)
+			num_len -= 1;
+	}
 	while (i < args.dot - num_len) {
 		count += ft_putchar('0');
 		i++;
 	}
 	return (count);
 }
+
+int             ft_numlen_ll_printf(long long n, t_args *args, int base) {
+	int i;
+	
+	i = 0;
+	if (args->hh)
+		n = (signed char)n;
+	else if (args->h)
+		n = (signed short)n;
+	else if (!args->l || !args->ll)
+		n = (signed int)n;	
+	if (n == 0)
+		i++;
+	if (n < 0) {
+		i++;
+		args->negative = 1;
+	} else {
+		args->positive = 1;
+	}
+	while (n) {
+		n /= base;
+		i++;
+	}
+	return (i);
+}
+
 
 int             ft_numlen_ull_printf(unsigned long long n, t_args args, int base) {
 	int i;
@@ -311,6 +338,63 @@ void	check_precision(int num_len, t_args *args) {
 	}
 }
 
+int	put_padding_string(int strlen, t_args args) {
+	int i;
+	int count;
+
+	count = 0;
+	i = 0;
+	while (i < args.padding - strlen) {
+		count += ft_putchar(' ');
+		i++;
+	}
+	return (count);
+}
+
+
+int	print_formatted_string(char *str, t_args args) {
+	int count;
+
+	count = 0;
+	if (args.padding && !args.left)
+		count += put_padding_string(ft_strlen(str), args);
+	count += ft_count_putstr(str);
+	if (args.padding && args.left)
+		count += put_padding_string(ft_strlen(str), args);
+	return (count);
+}
+
+int	place_sign(t_args args) {
+	if (args.plus && args.positive)
+		return (ft_putchar('+'));
+	else if (args.negative)
+		return (ft_putchar('-'));
+	return (0);
+}
+
+int	print_formatted_signed_decimal(long long data, t_args args) {
+	int count;
+	int num_len;
+	
+	count = 0;
+	num_len = ft_numlen_ll_printf(data, &args, 10);
+	check_precision((args.negative ? num_len - 1 : num_len) , &args);
+	if (args.plus && args.positive)
+		num_len++;
+	if (args.zero)
+		count += place_sign(args);
+	if (args.padding != 0 && !args.left)
+		count += put_padding(args, num_len);
+	if (!args.zero)
+		count += place_sign(args);
+	if (args.dot && args.dot != -1)
+		count += print_precision(num_len, args);
+	count += print_signed_number(data, args);
+	if (args.padding != 0 && args.left)
+		count += put_padding(args, num_len);
+	return (count);
+}
+
 int	print_formatted_unsigned_decimal(unsigned long long data, t_args args) {
 	int count;
 	int num_len;
@@ -319,12 +403,12 @@ int	print_formatted_unsigned_decimal(unsigned long long data, t_args args) {
 	num_len = ft_numlen_ull_printf(data, args, 10);
 	check_precision(num_len, &args);
 	if (args.padding != 0 && !args.left)
-		count += put_padding(data, args, num_len);
+		count += put_padding(args, num_len);
 	if (args.dot && args.dot != -1)
 		count += print_precision(num_len, args);
 	count += print_unsigned_number(data, 10, args);
 	if (args.padding != 0 && args.left)
-		count += put_padding(data, args, num_len);
+		count += put_padding(args, num_len);
 	return (count);	
 }
 
@@ -335,19 +419,21 @@ int	print_formatted_hex(unsigned long long data, t_args args) {
 	count = 0;
 	num_len = ft_numlen_ull_printf(data, args, 16);
 	check_precision(num_len, &args);
-	if (args.pound && data != 0)
+	if (args.pound && data != 0) {
 		num_len += 2;
+		args.not_zero = 1;
+	}
 	if (args.zero && args.pound && data != 0)
 		count += ft_count_putstr("0x");
 	if (args.padding && !args.left)
-		count += put_padding(data, args, num_len);
+		count += put_padding(args, num_len);
 	if (args.pound && data != 0 && !args.zero)
 		count += ft_count_putstr("0x");
 	if (args.dot && args.dot != -1)
 		 count += print_precision(num_len, args);
 	count += print_unsigned_number(data, 16, args);
 	if (args.padding && args.left)
-		count += put_padding(data, args, num_len);
+		count += put_padding(args, num_len);
 	return (count);	
 }
 
@@ -358,17 +444,19 @@ int	print_formatted_octal(unsigned long long data, t_args args) {
 	count = 0;
 	num_len = ft_numlen_ull_printf(data, args, 8);
 	check_precision(num_len, &args);
-	if (args.pound && data != 0 && args.dot <= num_len) 
+	if (args.pound && data != 0 && args.dot <= num_len) {
 		num_len++;
+		args.not_zero = 1;
+	}
 	if (args.padding && !args.left)
-		count += put_padding(data, args, num_len);
+		count += put_padding(args, num_len);
 	if (args.pound && data != 0 && args.dot <= num_len)
 		count += ft_putchar('0');
 	if (args.dot && args.dot != -1)
 		count += print_precision(num_len, args);
 	count += print_unsigned_number(data, 8, args);
 	if (args.padding && args.left)
-		count += put_padding(data, args, num_len);
+		count += put_padding(args, num_len);
 	return (count);	
 }
 
