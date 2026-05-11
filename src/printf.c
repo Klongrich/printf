@@ -26,35 +26,39 @@ void print_args(t_args args) {
     printf("----------------------------\n");
 }
 
-t_args init() {
-    t_args args;
+void	init_datatypes(t_args *args) {
+	args->hh = 0;
+	args->h = 0;
+	args->l = 0;
+	args->ll = 0;
+	args->string = 0;
+	args->pointer = 0;
+	args->character = 0;
+	args->is_float = 0;
+	args->hex = 0;
+	args->octal = 0;
+	args->decimal = 0;
+	args->is_signed = 0;
+	args->is_unsigned = 0;
+}
 
-    args.zero = 0;
-    args.left = 0;
-    args.padding = 0;
-    args.pound = 0;
-    args.space = 0;
-    args.plus = 0;
-    args.dot = 0;
-    args.is_uppercase = 0;
-    args.h = 0;
-    args.hh = 0;
-    args.l = 0;
-    args.ll = 0;
-    args.hex = 0;
-    args.octal = 0;
-    args.decimal = 0;
-    args.string = 0;
-    args.pointer = 0;
-    args.character = 0;
-    args.is_float = 0;
-    args.is_signed = 0;
-    args.is_unsigned = 0;
-    args.not_zero = 0;
-    args.positive = 0;
-    args.negative = 0;
-    args.is_L = 0;
-    return (args);
+t_args init() {
+	t_args args;
+
+	init_datatypes(&args);
+	args.zero = 0;
+	args.left = 0;
+	args.padding = 0;
+	args.pound = 0;
+	args.space = 0;
+	args.plus = 0;
+	args.dot = 0;
+	args.is_uppercase = 0;
+	args.not_zero = 0;
+	args.positive = 0;
+	args.negative = 0;
+	args.is_L = 0;
+	return (args);
 }
 
 void    set_args(char c, t_args *args) {
@@ -70,6 +74,23 @@ void    set_args(char c, t_args *args) {
 		args->space = 1;
 }
 
+void	parse_padding(char *buffer, char *buff, t_args *args, int j) {
+	char *dot;
+
+	if (j > 0) {
+		dot = ft_strchr(buffer, '.');
+		if (dot != NULL) {
+			dot++;
+			args->dot = ft_atoi(dot);
+			if (args->dot == 0)
+				args->dot = -1;	
+		}
+		if (buff[j - 1]) {
+			args->padding = ft_atoi(buff);
+		}
+	}
+}
+
 void	parse_args(char *buffer, t_args *args) {
 	int i;
 	int j;
@@ -83,24 +104,10 @@ void	parse_args(char *buffer, t_args *args) {
 		set_args(buffer[i], args);
 		i++;
 	}
-	while (buffer[i]) {
-		buff[j] = buffer[i];	
-		i++;
-		j++;
-	}
+	while (buffer[i]) 
+		buff[j++] = buffer[i++];
 	buff[j] = '\0';
-	if (j > 0) {
-		dot = ft_strchr(buffer, '.');
-		if (dot != NULL) {
-			dot++;
-			args->dot = ft_atoi(dot);
-			if (args->dot == 0) 
-				args->dot = -1;	
-		}
-		if (buff[j - 1]) {
-			args->padding = ft_atoi(buff);
-		}
-	}
+	parse_padding(buffer, buff, args, j);
 }
 
 int	check_for_datatype(char c) {
@@ -131,13 +138,7 @@ void	get_data_format(char *str, int i, t_args *args) {
 	}
 }
 
-int	get_datatype_args(char *str, int j, t_args *args) {
-	int i;
-
-	i = 0;
-	if (j == -1)
-		return (0);
-	i = j + 1;
+int	get_32bit_datatype(char *str, t_args *args, int i) {
 	if (str[i] == 's')
 		args->string = 1;
 	else if (str[i] == 'c')
@@ -157,34 +158,64 @@ int	get_datatype_args(char *str, int j, t_args *args) {
 	} else if (str[i] == 'u') {
 		args->decimal = 1;
 		args->is_signed = 0;
-	} else if (str[i] == 'f')
-		args->is_float = 1;
-	else if (str[i] == 'h' && str[i + 1] == 'h') {
-		args->hh = 1;
-		get_data_format(str, i + 2, args);
-		return (3);
-	}
-	else if (str[i] == 'h') {
-		args->h = 1;
-		get_data_format(str, i + 1, args);
-		return (2);
-	}
-	else if (str[i] == 'l' && str[i + 1] == 'l') {
-		args->ll = 1;
-		get_data_format(str, i + 2, args);
-		return (3);
-	}
-	else if (str[i] == 'l') {
-		args->l = 1;
-		get_data_format(str, i + 1, args);
-		return (2);
-	} else if (str[i] == 'L' && str[i + 1] == 'f') {
-		args->is_float = 1;
-		args->is_L = 1;
-		return (2);
-	} else {
+	} else
+		return(0);
+	return (1);
+}
+
+int	set_8bit(char *str, t_args *args, int i) {
+	args->hh = 1;
+	get_data_format(str, i + 2, args);
+	return (3);
+}
+
+int	set_16bit(char *str, t_args *args, int i) {
+	args->h = 1;
+	get_data_format(str, i + 1, args);
+	return (2);
+}
+
+int	set_64bit_ll(char *str, t_args *args, int i) {
+	args->ll = 1;
+	get_data_format(str, i + 2, args);
+	return (3);
+}
+
+int	set_64bit_l(char *str, t_args *args, int i) {
+	args->l = 1;
+	get_data_format(str, i + 1, args);
+	return (2);
+}
+
+int	set_float_L(char *str, t_args *args, int i) {
+	args->is_float = 1;
+	args->is_L = 1;
+	return (2);
+}
+
+int	get_datatype_args(char *str, int j, t_args *args) {
+	int i;
+
+	i = 0;
+	if (j == -1)
 		return (0);
-	}
+	i = j + 1;
+	if (get_32bit_datatype(str, args, i)) {
+		return (1);
+	} else if (str[i] == 'f') {
+		args->is_float = 1;
+	} else if (str[i] == 'h' && str[i + 1] == 'h') {
+		return (set_8bit(str, args, i));
+	} else if (str[i] == 'h') {
+		return (set_16bit(str, args, i));
+	} else if (str[i] == 'l' && str[i + 1] == 'l') {
+		return (set_64bit_ll(str, args, i));
+	} else if (str[i] == 'l') {
+		return (set_64bit_l(str, args, i));
+	} else if (str[i] == 'L' && str[i + 1] == 'f') {
+		return(set_float_L(str, args, i));
+	} else 
+		return (0);
 	return (1);
 }
 
@@ -372,12 +403,27 @@ double round_precision(double fract, t_args args) {
 
 }
 
+int	print_fraction_value(t_args args, double fract) {
+	int digit;
+	char c;
+	int count;	
+
+	count = 0;
+	while (args.dot) {
+		fract *= 10;
+		digit = (int)fract;
+		c = digit + '0';
+		count += ft_putchar(c);
+		fract -= digit;
+		args.dot--;
+	}
+	return (count);
+}
+
 int	print_float_value(long double data, t_args args) {
 	int count;
 	long long int_part;
 	double fract;
-	int digit;
-	char c;
 	
 	count = 0;
 	int_part = (long long)data;
@@ -393,16 +439,8 @@ int	print_float_value(long double data, t_args args) {
 	fract = round_precision(fract, args);
 	if (args.dot == -1)
 		args.dot = 0;
-	while (args.dot) {
-		fract *= 10;
-        	digit = (int)fract;
-        	c = digit + '0';
-        	count += ft_putchar(c);
-       		fract -= digit;
-		args.dot--;
-    	}
+	count += print_fraction_value(args, fract);
 	return (count);
-
 }
 
 int	float_numlen(double data, t_args *args) {
@@ -620,38 +658,46 @@ int	print_formatted_data(va_list list, t_args args) {
 	return (count);
 }
 
+void	init_norm(t_norm *norm) {
+	norm->i = 0;
+	norm->count = 0;
+}
+
+int	parse_print(char *str, t_norm *norm, t_args args, va_list list) {
+	int res;
+
+	res = 0;
+	if ((res = parse_arg_parameters(str, norm->i + 1, &args)) == -1) {
+		norm->count += 1;
+		return (-1);
+	}  else {
+		res != 0 ? (norm->count += print_formatted_data(list, args)) : 0;
+		norm->i += res;
+	}
+	return (0);
+}
+
 int	ft_printf(char *str, ...) {
 	va_list list;
-	int	i;
-	int	res;
-	int 	count;
 	t_args args;
+	t_norm norm;
 
-	i = 0;
-	res = 0;
-	count = 0;
 	va_start(list, str);
-	while (str[i]) {
+	init_norm(&norm);
+	while (str[norm.i]) {
 		args = init();
-		while (str[i] != '%' && str[i]) 
-			count += ft_putchar(str[i++]);
-		if (!str[i]) 
+		while (str[norm.i] != '%' && str[norm.i]) 
+			norm.count += ft_putchar(str[norm.i++]);
+		if (!str[norm.i]) 
 			break;
-		if (str[i + 1] == '%') {
-			count += ft_putchar('%');
-			i++;	
+		if (str[norm.i + 1] == '%') {
+			norm.count += ft_putchar('%');
+			norm.i++;	
 		} else  {
-			res = parse_arg_parameters(str, i + 1, &args);
-			if (res == -1) {
-				count += 1;
+			if (parse_print(str, &norm, args, list) == -1)
 				break;
-			}  else {
-				if (res != 0) 
-					count += print_formatted_data(list, args);
-				i += res;
-			}
 		}
-		i++;
+		norm.i++;
 	}
-	return(count);
+	return(norm.count);
 }
