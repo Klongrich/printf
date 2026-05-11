@@ -346,6 +346,77 @@ void	check_precision(int num_len, t_args *args) {
 	}
 }
 
+double round_precision(double fract, t_args args) {
+	int i;
+	double value;	
+
+	value = 0.5;
+	while (i < args.dot) {
+		value /= 10;
+		i++;
+	}
+	return (fract + value);
+
+}
+
+int	print_float_value(double data, t_args args) {
+	int count;
+	long long int_part;
+	double fract;
+	int digit;
+	
+	count = 0;
+	int_part = (long long)data;
+	fract = data - (double)int_part;
+	count += ft_putnbr_ll(int_part, 10);
+	count += ft_putchar('.');
+	if (args.negative)
+		fract *= -1;
+	fract = round_precision(fract, args);
+	while (args.dot) {
+        	fract *= 10;
+		if (!(args.dot - 1))
+			count += ft_putnbr_ll(((long long)fract), 10);
+		args.dot--;
+    	}
+	return (count);
+
+}
+
+int	float_numlen(double data, t_args *args) {
+	int len;
+	long long long_part;
+
+	len = 1;
+	long_part = (long long)data;
+	len += ft_numlen_ll_printf(long_part, args, 10);
+	if (!args->dot)
+		args->dot = 6;
+	else if (args->dot == -1)
+		args->dot = 0;
+	len += args->dot;
+	return (len);
+} 
+
+int	print_formatted_float(double data, t_args args) {
+	int count;
+	int num_len;
+	
+	count = 0;
+	num_len = float_numlen(data, &args);
+	if (args.padding && !args.left)
+		count += put_padding(args, num_len);
+	if (args.negative)
+		count += ft_putchar('-');
+	if (args.positive && args.plus)
+		count += ft_putchar('+');
+	count += print_float_value(data, args);
+	if (args.padding && args.left)
+		count += put_padding(args, num_len);
+	return (count);
+}
+
+
 int     print_formatted_character(char c, t_args args) { 
 	int i;
 	int count;
@@ -501,9 +572,6 @@ int	print_formatted_octal(unsigned long long data, t_args args) {
 	return (count);	
 }
 
-//left align errors with 0 & -
-//(space) with signed integers
-
 int	print_formatted_data(va_list list, t_args args) {
 	int count;
 
@@ -514,6 +582,8 @@ int	print_formatted_data(va_list list, t_args args) {
 		count +=  print_formatted_pointer(va_arg(list, void *), args);
 	} else if (args.character) {
 		count += print_formatted_character(va_arg(list, char), args);
+	} else if (args.is_float) {
+ 		count += print_formatted_float(va_arg(list, double), args);
 	} else if (args.decimal) {
 		if (args.is_signed) 
 			count += print_formatted_signed_decimal(va_arg(list, long long), args);	
