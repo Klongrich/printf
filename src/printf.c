@@ -338,29 +338,23 @@ void	check_precision(int num_len, t_args *args) {
 	}
 }
 
-int	put_padding_string(int strlen, t_args args) {
-	int i;
-	int count;
-
-	count = 0;
-	i = 0;
-	while (i < args.padding - strlen) {
-		count += ft_putchar(' ');
-		i++;
-	}
-	return (count);
-}
-
-
 int	print_formatted_string(char *str, t_args args) {
 	int count;
+	int str_len;
 
 	count = 0;
+	if (args.dot)
+		if (args.dot == -1)
+			str_len = 0;
+		else
+			str_len = args.dot;
+	else
+		str_len = ft_strlen(str);
 	if (args.padding && !args.left)
-		count += put_padding_string(ft_strlen(str), args);
-	count += ft_count_putstr(str);
+		count += put_padding(args, str_len);
+	count += ft_putstr_n(str, str_len);
 	if (args.padding && args.left)
-		count += put_padding_string(ft_strlen(str), args);
+		count += put_padding(args, str_len);
 	return (count);
 }
 
