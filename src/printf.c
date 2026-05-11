@@ -273,6 +273,8 @@ int	print_precision(int num_len, t_args args) {
 	count = 0;
 	if (args.pound && args.hex)
 		num_len -= 2;
+	if (args.pound && args.octal && args.dot <= num_len)
+		num_len -= 1;
 	while (i < args.dot - num_len) {
 		count += ft_putchar('0');
 		i++;
@@ -366,33 +368,12 @@ int	print_formatted_hex(unsigned long long data, t_args args) {
 	return (count);	
 }
 
-int             ft_numlen_oct(unsigned long long n) {
-         int i;
- 
-         i = 0;
-         if (n < 0) {
-                 i++;
-                 n *= -1;
-         }
-         if (n == 0)
-                 i++;
-         while (n) {
-                 n /= 8;
-                 i++;
-         }
-         return (i);
-}
-
-int	put_padding_octal(unsigned long long data, t_args args) {
+int	put_padding_octal(unsigned long long data, t_args args, int num_len) {
 	int count;
 	int i;
-	int num_len;
 
 	count = 0;
 	i = 0;
-	num_len = ft_numlen_oct(data);
-	if (args.pound && data != 0)
-		num_len++;
 	while (i < args.padding - num_len) {
 		if (args.zero)
 			count += ft_putchar('0');
@@ -405,15 +386,22 @@ int	put_padding_octal(unsigned long long data, t_args args) {
 
 int	print_formatted_octal(unsigned long long data, t_args args) {
 	int count;
+	int num_len;
 	
 	count = 0;
+	num_len = ft_numlen_ull_printf(data, args, 8);
+	check_precision(num_len, &args);
+	if (args.pound && data != 0 && args.dot <= num_len) 
+		num_len++;
 	if (args.padding && !args.left)
-		count += put_padding_octal(data, args);
-	if (args.pound && data != 0)
+		count += put_padding_octal(data, args, num_len);
+	if (args.pound && data != 0 && args.dot <= num_len)
 		count += ft_putchar('0');
+	if (args.dot && args.dot != -1)
+		count += print_precision(num_len, args);
 	count += print_unsigned_number(data, 8, args);
 	if (args.padding && args.left)
-		count += put_padding_octal(data, args);
+		count += put_padding_octal(data, args, num_len);
 	return (count);	
 }
 
