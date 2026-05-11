@@ -22,7 +22,6 @@ int	ft_putnbr_ll(signed long long n, int base) {
 	if (n == 0)
 		return (ft_putchar('0'));
 	else if (n < 0) {
-		count += ft_putchar('-');
 		nb = (unsigned long long)-n;
 	} else {
 		nb = (unsigned long long)n;

@@ -16,6 +16,7 @@
 # include <unistd.h>
 # include <stdarg.h>
 
+ int     ft_putstr_n(char *str, int n);
 int     ft_count_putstr(char const *s);
  int             ft_numlen_ull(unsigned long long n);
 int     				ft_putnumber_ull(unsigned long long n, unsigned int base);
