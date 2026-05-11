@@ -499,7 +499,7 @@ int	print_formatted_signed_decimal(long long data, t_args args) {
 		count += put_padding(args, num_len);
 	if (!args.zero)
 		count += place_sign(args);
-	if (!args.padding && args.space && args.positive && !args.plus)
+	if (args.padding <= 0 && args.space && args.positive && !args.plus)
 		count += ft_putchar(' ');
 	if (args.dot && args.dot != -1)
 		count += print_precision(num_len, args);
