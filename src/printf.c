@@ -346,6 +346,14 @@ void	check_precision(int num_len, t_args *args) {
 	}
 }
 
+int	place_sign(t_args args) {
+	if (args.plus && args.positive)
+		return (ft_putchar('+'));
+	else if (args.negative)
+		return (ft_putchar('-'));
+	return (0);
+}
+
 double round_precision(double fract, t_args args) {
 	int i;
 	double value;	
@@ -404,12 +412,12 @@ int	print_formatted_float(double data, t_args args) {
 	
 	count = 0;
 	num_len = float_numlen(data, &args);
+	if (args.zero)
+		count += place_sign(args);
 	if (args.padding && !args.left)
 		count += put_padding(args, num_len);
-	if (args.negative)
-		count += ft_putchar('-');
-	if (args.positive && args.plus)
-		count += ft_putchar('+');
+	if (!args.zero)
+		count += place_sign(args);
 	count += print_float_value(data, args);
 	if (args.padding && args.left)
 		count += put_padding(args, num_len);
@@ -474,14 +482,6 @@ int	print_formatted_string(char *str, t_args args) {
 	return (count);
 }
 
-int	place_sign(t_args args) {
-	if (args.plus && args.positive)
-		return (ft_putchar('+'));
-	else if (args.negative)
-		return (ft_putchar('-'));
-	return (0);
-}
-
 int	print_formatted_signed_decimal(long long data, t_args args) {
 	int count;
 	int num_len;
@@ -489,9 +489,11 @@ int	print_formatted_signed_decimal(long long data, t_args args) {
 	count = 0;
 	num_len = ft_numlen_ll_printf(data, &args, 10);
 	check_precision((args.negative ? num_len - 1 : num_len) , &args);
+	if (args.dot)
+		args.zero = 0;
 	if (args.plus && args.positive)
 		num_len++;
-	if (args.zero)
+	if (args.zero) 
 		count += place_sign(args);
 	if (args.padding != 0 && !args.left)
 		count += put_padding(args, num_len);
