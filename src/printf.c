@@ -394,13 +394,13 @@ double round_precision(double fract, t_args args) {
 	int i;
 	double value;	
 
+
 	value = 0.5;
 	while (i < args.dot) {
 		value /= 10;
 		i++;
 	}
 	return (fract + value);
-
 }
 
 int	print_fraction_value(t_args args, double fract) {
@@ -428,6 +428,8 @@ int	print_float_value(long double data, t_args args) {
 	count = 0;
 	int_part = (long long)data;
 	fract = data - (long double)int_part;
+	if (args.dot == -1 && fract >= 0.5)
+		int_part++;
 	count += ft_putnbr_ll(int_part, 10);
 	if (args.dot == -1) {
 		if (args.pound)
@@ -456,11 +458,21 @@ int	float_numlen(double data, t_args *args) {
 	return (len);
 } 
 
+int is_inf(long double n) {
+    return (n != 0 && n == n * 0.5);
+}
+
 int	print_formatted_float(double data, t_args args) {
 	int count;
 	int num_len;
 	
 	count = 0;
+	if (data != data)
+		return(ft_count_putstr("nan"));
+	if (is_inf(data) && data > 0)
+		return(ft_count_putstr("inf"));
+	if (is_inf(data) && data < 0)
+		return (ft_count_putstr("-inf"));
 	num_len = float_numlen(data, &args);
 	if (args.plus && args.positive)
 		num_len++;
