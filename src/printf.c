@@ -202,29 +202,39 @@ int	parse_arg_parameters(char *str, int i, t_args *args) {
 	return (j);
 }
 
-int	ft_putnbr_ull(unsigned long long n, int base) {
+int	ft_putnbr_ull(unsigned long long n, int base, t_args args) {
 	int	count;
 	char	*symbols;
 
 	count = 0;
-	symbols = "0123456789abcdef";
+	if (args.is_uppercase)
+		 symbols = "0123456789ABCDEF";
+	else
+		symbols = "0123456789abcdef";
 	if (n == 0)
 		return (ft_putchar('0'));
 	if (n >= (unsigned long long)base)
-		count += ft_putnbr_ull(n / base, base);
+		count += ft_putnbr_ull(n / base, base, args);
 	count += ft_putchar(symbols[n % base]);
 	return (count);
 }
 
+int     ft_put_hexpound(int is_uppercase) {
+	if (is_uppercase)
+		return (ft_count_putstr("0X"));
+	else
+		return (ft_count_putstr("0x"));
+}
+
 int	print_unsigned_number(unsigned long long data, int base, t_args args) {
 	if (args.hh)
-		return(ft_putnbr_ull((unsigned char)data, base));
+		return(ft_putnbr_ull((unsigned char)data, base, args));
 	else if (args.h) 
-		return (ft_putnbr_ull((unsigned short)data, base));
+		return (ft_putnbr_ull((unsigned short)data, base, args));
 	else if (args.ll || args.l)
-		return(ft_putnbr_ull((unsigned long long)data, base));
+		return(ft_putnbr_ull((unsigned long long)data, base, args));
 	else
-		return(ft_putnbr_ull((unsigned int)data, base));
+		return(ft_putnbr_ull((unsigned int)data, base, args));
 }
 
 int	print_signed_number(long long data, t_args args) {
@@ -258,8 +268,6 @@ int	put_padding(t_args args, int num_len) {
 	return (count);
 }
 
-//check for 0, pass number for #hex && #octal
-//check if value is >= 0 for is_signed
 int	print_precision(int num_len, t_args args) {
 	int count;
 	int i;
@@ -367,7 +375,7 @@ int	print_formatted_pointer(void *pointer, t_args args) {
 	if (pointer == NULL)
 		count += ft_count_putstr("(nil)");
 	count += ft_count_putstr("0x");
-	count += ft_putnbr_ull(address, 16);
+	count += ft_putnbr_ull(address, 16, args);
 	if (args.padding != 0 && args.left) 
 		count += put_padding(args, num_len);
 	return(count);
@@ -455,11 +463,11 @@ int	print_formatted_hex(unsigned long long data, t_args args) {
 		args.not_zero = 1;
 	}
 	if (args.zero && args.pound && data != 0)
-		count += ft_count_putstr("0x");
+		count +=  ft_put_hexpound(args.is_uppercase);
 	if (args.padding && !args.left)
 		count += put_padding(args, num_len);
 	if (args.pound && data != 0 && !args.zero)
-		count += ft_count_putstr("0x");
+		count += ft_put_hexpound(args.is_uppercase);
 	if (args.dot && args.dot != -1)
 		 count += print_precision(num_len, args);
 	count += print_unsigned_number(data, 16, args);
@@ -507,12 +515,8 @@ int	print_formatted_data(va_list list, t_args args) {
 		else
 			count += print_formatted_unsigned_decimal(va_arg(list, unsigned long long), args);	
 	} else if (args.hex) {
-		if (args.is_uppercase)
-			count += print_formatted_hex(va_arg(list, unsigned long long), args);
-		else
-			count += print_formatted_hex(va_arg(list, unsigned long long), args);
-	}
-	else if (args.octal)
+		count += print_formatted_hex(va_arg(list, unsigned long long), args);
+	} else if (args.octal)
 		count += print_formatted_octal(va_arg(list, unsigned long long), args);
 	return (count);
 }
