@@ -168,7 +168,7 @@ int	get_datatype_args(char *str, int j, t_args *args) {
 		get_data_format(str, i + 1, args);
 		return (2);
 	}
-	else if (str[i] == 'l' && str[i] == 'l') {
+	else if (str[i] == 'l' && str[i + 1] == 'l') {
 		args->ll = 1;
 		get_data_format(str, i + 2, args);
 		return (3);
@@ -259,7 +259,7 @@ int	put_padding(t_args args, int num_len) {
 	count = 0;
 	i = 0;
 	while(i < args.padding - num_len) {
-		if (args.zero)
+		if (args.zero && !args.left)
 			count += ft_putchar('0');
 		else
 			count += ft_putchar(' ');
@@ -426,6 +426,8 @@ int	print_formatted_signed_decimal(long long data, t_args args) {
 		count += put_padding(args, num_len);
 	if (!args.zero)
 		count += place_sign(args);
+	if (!args.padding && args.space && args.positive && !args.plus)
+		count += ft_putchar(' ');
 	if (args.dot && args.dot != -1)
 		count += print_precision(num_len, args);
 	count += print_signed_number(data, args);
@@ -498,6 +500,9 @@ int	print_formatted_octal(unsigned long long data, t_args args) {
 		count += put_padding(args, num_len);
 	return (count);	
 }
+
+//left align errors with 0 & -
+//(space) with signed integers
 
 int	print_formatted_data(va_list list, t_args args) {
 	int count;
