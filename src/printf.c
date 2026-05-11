@@ -338,17 +338,44 @@ void	check_precision(int num_len, t_args *args) {
 	}
 }
 
+int	print_formatted_pointer(void *pointer, t_args args) {
+	unsigned long long	address;
+	int			count;
+	int			num_len;
+	int			i;
+
+	i = 0;
+	count = 0;
+	address = (unsigned long long) pointer;
+	num_len = ft_numlen_ll(address) - 1;
+	if (args.padding != 0 && !args.left) {
+		while (i++ < args.padding - num_len)
+			count += ft_putchar(' ');
+	}
+	if (pointer == NULL)
+		count += ft_count_putstr("(nil)");
+	count += ft_count_putstr("0x");
+	count += ft_putnbr_ull(address, 16);
+	if (args.padding != 0 && args.left) {
+		while (i++ < args.padding - num_len)
+			count += ft_putchar(' ');
+	}
+	return(count);
+}
+
 int	print_formatted_string(char *str, t_args args) {
 	int count;
 	int str_len;
 
 	count = 0;
+	if (str == NULL)
+		str =  "(null)";
 	if (args.dot)
 		if (args.dot == -1)
 			str_len = 0;
 		else
 			str_len = args.dot;
-	else
+	else 
 		str_len = ft_strlen(str);
 	if (args.padding && !args.left)
 		count += put_padding(args, str_len);
@@ -460,6 +487,8 @@ int	print_formatted_data(va_list list, t_args args) {
 	count = 0;
 	if (args.string) {
 		count += print_formatted_string(va_arg(list, char *), args);
+	} else if (args.pointer) { 
+		count +=  print_formatted_pointer(va_arg(list, void *), args);
 	} else if (args.decimal) {
 		if (args.is_signed) 
 			count += print_formatted_signed_decimal(va_arg(list, long long), args);	
