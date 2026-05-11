@@ -348,18 +348,14 @@ int	print_formatted_pointer(void *pointer, t_args args) {
 	count = 0;
 	address = (unsigned long long) pointer;
 	num_len = ft_numlen_ll(address) - 1;
-	if (args.padding != 0 && !args.left) {
-		while (i++ < args.padding - num_len)
-			count += ft_putchar(' ');
-	}
+	if (args.padding != 0 && !args.left) 
+		count += put_padding(args, num_len);
 	if (pointer == NULL)
 		count += ft_count_putstr("(nil)");
 	count += ft_count_putstr("0x");
 	count += ft_putnbr_ull(address, 16);
-	if (args.padding != 0 && args.left) {
-		while (i++ < args.padding - num_len)
-			count += ft_putchar(' ');
-	}
+	if (args.padding != 0 && args.left) 
+		count += put_padding(args, num_len);
 	return(count);
 }
 
