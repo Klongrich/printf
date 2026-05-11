@@ -41,5 +41,10 @@ typedef struct args {
 	int	is_float;
 	int	is_signed;
 	int	is_unsigned;
-
+	int	not_zero;
+	int	positive;
+	int	negative;
+	int	is_L;
 }		t_args;
+
+int put_float(long double f, t_args args);

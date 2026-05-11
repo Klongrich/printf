@@ -53,6 +53,7 @@ t_args init() {
     args.not_zero = 0;
     args.positive = 0;
     args.negative = 0;
+    args.is_L = 0;
     return (args);
 }
 
@@ -93,7 +94,7 @@ void	parse_args(char *buffer, t_args *args) {
 		if (dot != NULL) {
 			dot++;
 			args->dot = ft_atoi(dot);
-			if (args->dot == 0)
+			if (args->dot == 0) 
 				args->dot = -1;	
 		}
 		if (buff[j - 1]) {
@@ -176,6 +177,10 @@ int	get_datatype_args(char *str, int j, t_args *args) {
 	else if (str[i] == 'l') {
 		args->l = 1;
 		get_data_format(str, i + 1, args);
+		return (2);
+	} else if (str[i] == 'L' && str[i + 1] == 'f') {
+		args->is_float = 1;
+		args->is_L = 1;
 		return (2);
 	} else {
 		return (0);
@@ -299,7 +304,7 @@ int             ft_numlen_ll_printf(long long n, t_args *args, int base) {
 		n = (signed char)n;
 	else if (args->h)
 		n = (signed short)n;
-	else if (!args->l || !args->ll)
+	else if (!args->l && !args->ll)
 		n = (signed int)n;	
 	if (n == 0)
 		i++;
@@ -325,7 +330,7 @@ int             ft_numlen_ull_printf(unsigned long long n, t_args args, int base
 		n = (unsigned char)n;
 	else if (args.h)
 		n = (unsigned short)n;
-	else if (!args.l || !args.ll)
+	else if (!args.l && !args.ll)
 		n = (unsigned int)n;
 	if (n == 0)
 		i++;
@@ -367,24 +372,33 @@ double round_precision(double fract, t_args args) {
 
 }
 
-int	print_float_value(double data, t_args args) {
+int	print_float_value(long double data, t_args args) {
 	int count;
 	long long int_part;
 	double fract;
 	int digit;
+	char c;
 	
 	count = 0;
 	int_part = (long long)data;
-	fract = data - (double)int_part;
+	fract = data - (long double)int_part;
 	count += ft_putnbr_ll(int_part, 10);
-	count += ft_putchar('.');
+	if (args.dot == -1) {
+		if (args.pound)
+			count += ft_putchar('.');
+	} else
+		count += ft_putchar('.');
 	if (args.negative)
 		fract *= -1;
 	fract = round_precision(fract, args);
+	if (args.dot == -1)
+		args.dot = 0;
 	while (args.dot) {
-        	fract *= 10;
-		if (!(args.dot - 1))
-			count += ft_putnbr_ll(((long long)fract), 10);
+		fract *= 10;
+        	digit = (int)fract;
+        	c = digit + '0';
+        	count += ft_putchar(c);
+       		fract -= digit;
 		args.dot--;
     	}
 	return (count);
@@ -400,8 +414,6 @@ int	float_numlen(double data, t_args *args) {
 	len += ft_numlen_ll_printf(long_part, args, 10);
 	if (!args->dot)
 		args->dot = 6;
-	else if (args->dot == -1)
-		args->dot = 0;
 	len += args->dot;
 	return (len);
 } 
@@ -412,6 +424,8 @@ int	print_formatted_float(double data, t_args args) {
 	
 	count = 0;
 	num_len = float_numlen(data, &args);
+	if (args.plus && args.positive)
+		num_len++;
 	if (args.zero)
 		count += place_sign(args);
 	if (args.padding && !args.left)
@@ -545,7 +559,8 @@ int	print_formatted_hex(unsigned long long data, t_args args) {
 		count += ft_put_hexpound(args.is_uppercase);
 	if (args.dot && args.dot != -1)
 		 count += print_precision(num_len, args);
-	count += print_unsigned_number(data, 16, args);
+	if (data == 0 && args.dot == -1) {} else
+		count += print_unsigned_number(data, 16, args);
 	if (args.padding && args.left)
 		count += put_padding(args, num_len);
 	return (count);	
@@ -568,7 +583,11 @@ int	print_formatted_octal(unsigned long long data, t_args args) {
 		count += ft_putchar('0');
 	if (args.dot && args.dot != -1)
 		count += print_precision(num_len, args);
-	count += print_unsigned_number(data, 8, args);
+	if (data == 0 && args.dot == -1) {
+		if (args.pound)
+			count += ft_putchar('0');
+	} else	
+		count += print_unsigned_number(data, 8, args);
 	if (args.padding && args.left)
 		count += put_padding(args, num_len);
 	return (count);	
@@ -585,7 +604,10 @@ int	print_formatted_data(va_list list, t_args args) {
 	} else if (args.character) {
 		count += print_formatted_character(va_arg(list, char), args);
 	} else if (args.is_float) {
- 		count += print_formatted_float(va_arg(list, double), args);
+		if (args.is_L)
+			count += print_formatted_float(va_arg(list, long double), args);
+		else
+ 			count += print_formatted_float(va_arg(list, double), args);
 	} else if (args.decimal) {
 		if (args.is_signed) 
 			count += print_formatted_signed_decimal(va_arg(list, long long), args);	
