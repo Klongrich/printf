@@ -47,4 +47,9 @@ typedef struct args {
 	int	is_L;
 }		t_args;
 
+typedef struct norm_struct {
+	int	i;
+	int	count;
+}	t_norm;
+
 int put_float(long double f, t_args args);
